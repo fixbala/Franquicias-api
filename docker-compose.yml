@@ -1,0 +1,30 @@
+services:
+  mongodb:
+    image: mongo:6.0.14  # Versión específica estable
+    container_name: mongodb
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: example
+    volumes:
+      - mongodb_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 5s
+      timeout: 10s
+      retries: 5
+
+  franquicias-api:
+    build: .
+    container_name: franquicias-api
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_DATA_MONGODB_URI: "mongodb://root:example@mongodb:27017/franquicias?authSource=admin"
+    depends_on:
+      mongodb:
+        condition: service_healthy
+
+volumes:
+  mongodb_data:
